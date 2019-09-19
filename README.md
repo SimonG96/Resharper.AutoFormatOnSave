@@ -1,6 +1,7 @@
 # Resharper.AutoFormatOnSave
 
-Resharper.AutoFormatOnSave is a Visual Studio Extension that calls ReSharper's `Silent Cleanup Code` command when you save your solution.
+Resharper.AutoFormatOnSave is a Visual Studio Extension that calls ReSharper's `Silent Cleanup Code` command when you save your solution.  
+It is based on [this](https://github.com/PombeirP/ReSharper.AutoFormatOnSave) extension.
 
 ## Allowed File Extensions
 
