@@ -150,7 +150,7 @@ namespace Resharper.AutoFormatOnSave
                     return;
 
                 //remove all unsaved documents from the dictionary
-                foreach (var document in _documentsToReformat.Where(d => d.Key.Saved).Select(d => d.Key))
+                foreach (var document in _documentsToReformat.Where(d => !d.Key.Saved).Select(d => d.Key).ToList())
                 {
                     _documentsToReformat.Remove(document);
                 }
