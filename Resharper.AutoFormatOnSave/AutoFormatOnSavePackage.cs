@@ -8,6 +8,7 @@ using System.Threading;
 using System.Timers;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Process = System.Diagnostics.Process;
 using Task = System.Threading.Tasks.Task;
 using Timer = System.Timers.Timer;
@@ -34,6 +35,7 @@ namespace Resharper.AutoFormatOnSave
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [Guid(PACKAGE_GUID_STRING)]
+    [ProvideAutoLoad(UIContextGuids.SolutionExists)]
     public sealed class AutoFormatOnSavePackage : AsyncPackage
     {
         /// <summary>
@@ -130,7 +132,7 @@ namespace Resharper.AutoFormatOnSave
         /// </summary>
         /// <param name="sender">The timer</param>
         /// <param name="args">The <see cref="ElapsedEventArgs"/></param>
-        private /*async*/ void TimerOnElapsed(object sender, ElapsedEventArgs args)
+        private async void TimerOnElapsed(object sender, ElapsedEventArgs args)
         {
             try
             {
@@ -164,8 +166,7 @@ namespace Resharper.AutoFormatOnSave
                 if (!_documentsToReformat.Any() || anyDocumentSavedSinceLastCheck)
                     return;
 
-                //await ReformatDocuments(_documentsToReformat.OrderBy(d => d.Value).Select(d => d.Key).ToList(), true);
-                ReformatDocuments(_documentsToReformat.OrderBy(d => d.Value).Select(d => d.Key).ToList(), true);
+                await ReformatDocuments(_documentsToReformat.OrderBy(d => d.Value).Select(d => d.Key).ToList(), true);
             }
             catch (Exception ex)
             {
@@ -181,7 +182,7 @@ namespace Resharper.AutoFormatOnSave
         /// <param name="documentsToReformat">The <see cref="Document"/>s to reformat</param>
         /// <param name="saveDocumentsAfterwards">True if the changed <see cref="Document"/>s should be saved afterwards</param>
         /// <returns></returns>
-        private /*async Task*/ void ReformatDocuments(List<Document> documentsToReformat, bool saveDocumentsAfterwards = false)
+        private async Task ReformatDocuments(IReadOnlyCollection<Document> documentsToReformat, bool saveDocumentsAfterwards = false)
         {
             IsReformatting = true;
             _timer.Stop();
@@ -189,8 +190,8 @@ namespace Resharper.AutoFormatOnSave
 
             Window originallyActiveWindow = Dte.ActiveWindow;
 
-            //await Task.Run(() => 
-            //{
+            await Task.Run(() => 
+            {
                 try
                 {
                     Document originallyActiveDocument = originallyActiveWindow?.Document;
@@ -244,7 +245,7 @@ namespace Resharper.AutoFormatOnSave
                     _timer.Start();
                     IsReformatting = false;
                 }
-            //});
+            });
         }
 
         /// <summary>
