@@ -36,6 +36,7 @@ namespace Resharper.AutoFormatOnSave
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [Guid(PACKAGE_GUID_STRING)]
     [ProvideAutoLoad(UIContextGuids.SolutionExists)]
+    [ProvideOptionPage(typeof(OptionPage), "ReSharper.AutoFormatOnSave", "Allowed File Extensions", 0, 0 , true)]
     public sealed class AutoFormatOnSavePackage : AsyncPackage
     {
         /// <summary>
@@ -49,11 +50,6 @@ namespace Resharper.AutoFormatOnSave
         /// </summary>
         private readonly List<string> _resharperSilentCleanupCodeCommandsNames = new List<string>() { "ReSharper_SilentCleanupCode", "ReSharper.ReSharper_SilentCleanupCode" };
         
-        /// <summary>
-        /// The allowed file extensions for code cleanup.
-        /// </summary>
-        private readonly List<string> _allowedFileExtensions = new List<string>() { ".cs", ".vb", ".js", ".ts", ".css", ".html", ".xml" };
-
         /// <summary>
         /// Timer to run background checks, mainly to check whether all saves have completed
         /// </summary>
@@ -103,6 +99,45 @@ namespace Resharper.AutoFormatOnSave
         /// Positive value when the build engine is running
         /// </summary>
         private int BuildingSolution { get; set; }
+
+
+        /// <summary>
+        /// The allowed file extensions for code cleanup.
+        /// </summary>
+        private List<string> AllowedFileExtensions
+        {
+            get
+            {
+                List<string> allowedFileExtensions = new List<string>();
+                OptionPage optionPage = (OptionPage) GetDialogPage(typeof(OptionPage));
+
+                if (optionPage.IsCsAllowed)
+                    allowedFileExtensions.Add(".cs");
+
+                if (optionPage.IsXamlAllowed)
+                    allowedFileExtensions.Add(".xaml");
+
+                if (optionPage.IsVbAllowed)
+                    allowedFileExtensions.Add(".vb");
+
+                if (optionPage.IsJsAllowed)
+                    allowedFileExtensions.Add(".js");
+
+                if (optionPage.IsTsAllowed)
+                    allowedFileExtensions.Add(".ts");
+
+                if (optionPage.IsCssAllowed)
+                    allowedFileExtensions.Add(".css");
+
+                if (optionPage.IsHtmlAllowed)
+                    allowedFileExtensions.Add(".html");
+
+                if (optionPage.IsXmlAllowed)
+                    allowedFileExtensions.Add(".xml");
+
+                return allowedFileExtensions;
+            }
+        }
 
 
         /// <summary>
@@ -296,7 +331,7 @@ namespace Resharper.AutoFormatOnSave
                 return;
 
             string extension = Path.GetExtension(document.FullName);
-            if (!_allowedFileExtensions.Contains(extension))
+            if (!AllowedFileExtensions.Contains(extension))
                 return;
 
             _documentsToReformat[document] = DateTime.Now;
@@ -309,7 +344,7 @@ namespace Resharper.AutoFormatOnSave
         private void OnDocumentClosing(Document document)
         {
             string extension = Path.GetExtension(document.FullName);
-            if (!_allowedFileExtensions.Contains(extension))
+            if (!AllowedFileExtensions.Contains(extension))
                 return;
 
             _documentsToReformat.Remove(document);
