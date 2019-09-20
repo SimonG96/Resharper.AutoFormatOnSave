@@ -5,7 +5,7 @@
 using System;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Resharper.AutoFormatOnSave
+namespace Resharper.AutoFormatOnSave.Interfaces
 {
     public interface ILog : IDisposable
     {
@@ -13,6 +13,7 @@ namespace Resharper.AutoFormatOnSave
         /// Initialize <see cref="ILog"/>
         /// </summary>
         /// <param name="outputPane">The Visual Studio output window pane</param>
-        void InitializeLog(IVsOutputWindowPane outputPane);
+        /// <param name="loggingOptions">The logging options</param>
+        void InitializeLog(IVsOutputWindowPane outputPane, ILoggingOptions loggingOptions);
     }
 }
