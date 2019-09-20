@@ -9,6 +9,10 @@ namespace Resharper.AutoFormatOnSave
 {
     public interface ILog : IDisposable
     {
+        /// <summary>
+        /// Initialize <see cref="ILog"/>
+        /// </summary>
+        /// <param name="outputPane">The Visual Studio output window pane</param>
         void InitializeLog(IVsOutputWindowPane outputPane);
     }
 }

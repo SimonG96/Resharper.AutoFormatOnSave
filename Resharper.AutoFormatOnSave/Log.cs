@@ -2,7 +2,6 @@
 // Created: 2019-09-20
 // Copyright(c) 2019 SimonG. All Rights Reserved.
 
-using System;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Resharper.AutoFormatOnSave
@@ -11,14 +10,22 @@ namespace Resharper.AutoFormatOnSave
     {
         private static IVsOutputWindowPane _outputPane;
 
+        /// <summary>
+        /// Initialize <see cref="Log"/>
+        /// </summary>
+        /// <param name="outputPane">The Visual Studio output window pane</param>
         public void InitializeLog(IVsOutputWindowPane outputPane)
         {
             _outputPane = outputPane;
         }
 
-        public static void WriteLine(string message)
+        /// <summary>
+        /// Write a given <see cref="string"/> to the <see cref="IVsOutputWindowPane"/>
+        /// </summary>
+        /// <param name="line">The given string</param>
+        public static void WriteLine(string line)
         {
-            _outputPane.OutputString($"{message}\n");
+            _outputPane.OutputString($"{line}\n");
             _outputPane.Activate();
         }
 
