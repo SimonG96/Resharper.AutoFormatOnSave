@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -34,15 +33,11 @@ namespace Resharper.AutoFormatOnSave
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
-    [Guid(PACKAGE_GUID_STRING)]
-    [ProvideAutoLoad(UIContextGuids.SolutionExists)]
+    [Guid(Guids.PACKAGE_GUID_STRING)]
+    [ProvideAutoLoad(UIContextGuids.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideOptionPage(typeof(OptionPage), "ReSharper.AutoFormatOnSave", "Allowed File Extensions", 0, 0 , true)]
     public sealed class AutoFormatOnSavePackage : AsyncPackage
     {
-        /// <summary>
-        /// AutoFormatOnSavePackage GUID string.
-        /// </summary>
-        private const string PACKAGE_GUID_STRING = "9a82f1dc-d8e7-4ab9-82e9-0d2691de3bbd";
         private const uint TIMER_INTERVAL = 1000;
         
         /// <summary>
@@ -60,6 +55,8 @@ namespace Resharper.AutoFormatOnSave
         /// </summary>
         private readonly Dictionary<Document, DateTime> _documentsToReformat = new Dictionary<Document, DateTime>();
 
+        private readonly ILog _log;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AutoFormatOnSavePackage"/> class.
         /// </summary>
@@ -70,6 +67,7 @@ namespace Resharper.AutoFormatOnSave
             // not sited yet inside Visual Studio environment. The place to do all the other
             // initialization is the Initialize method.
 
+            _log = new Log();
             _timer.Elapsed += TimerOnElapsed;
         }
 
@@ -169,11 +167,14 @@ namespace Resharper.AutoFormatOnSave
         /// <param name="args">The <see cref="ElapsedEventArgs"/></param>
         private async void TimerOnElapsed(object sender, ElapsedEventArgs args)
         {
+            Log.WriteLine($"{nameof(TimerOnElapsed)}()");
+
             try
             {
                 if (BuildingSolution > 0)
                 {
                     _documentsToReformat.Clear();
+                    Log.WriteLine("Solution Building.");
                     return;
                 }
 
@@ -183,6 +184,8 @@ namespace Resharper.AutoFormatOnSave
                     !_documentsToReformat.Any() ||
                     !IsVisualStudioForegroundWindow())
                     return;
+
+                Log.WriteLine("Going on to reformat.");
 
                 //remove all unsaved documents from the dictionary
                 foreach (var document in _documentsToReformat.Where(d => !d.Key.Saved).Select(d => d.Key).ToList())
@@ -194,19 +197,24 @@ namespace Resharper.AutoFormatOnSave
                 if ((now - LastReformat).TotalSeconds < 5) //ignore any documents that have been saved if a reformat has happened within the last 5 seconds
                 {
                     _documentsToReformat.Clear();
+                    Log.WriteLine($"LastReformat has happened within the last 5 seconds ({LastReformat} sec).");
                     return;
                 }
 
                 bool anyDocumentSavedSinceLastCheck = _documentsToReformat.Any(d => (now - d.Value).TotalMilliseconds < _timer.Interval);
                 if (!_documentsToReformat.Any() || anyDocumentSavedSinceLastCheck)
+                {
+                    Log.WriteLine("No documents have been saved since the last check.");
                     return;
+                }
 
+                Log.WriteLine($"Call {nameof(ReformatDocuments)}() now.");
                 await ReformatDocuments(_documentsToReformat.OrderBy(d => d.Value).Select(d => d.Key).ToList(), true);
             }
             catch (Exception ex)
             {
                 //TODO: Handle exception case
-                Console.WriteLine(ex);
+                Log.WriteLine(ex.Message);
                 throw;
             }
         }
@@ -219,6 +227,8 @@ namespace Resharper.AutoFormatOnSave
         /// <returns></returns>
         private async Task ReformatDocuments(IReadOnlyCollection<Document> documentsToReformat, bool saveDocumentsAfterwards = false)
         {
+            Log.WriteLine($"{nameof(ReformatDocuments)}(Number of documents to reformat: {documentsToReformat.Count})");
+
             IsReformatting = true;
             _timer.Stop();
             LastReformat = DateTime.Now;
@@ -243,16 +253,19 @@ namespace Resharper.AutoFormatOnSave
 
                     foreach (var document in recentlySavedDocuments)
                     {
+                        Log.WriteLine($"Document: {document.Name}.");
+
                         //activate the document that was just saved to run the ReSharper command in it
                         document.Activate();
-
+                        
                         try
                         {
+                            Log.WriteLine("Execute ReSharper command.");
                             Dte.ExecuteCommand(Command.Name);
                         }
                         catch (Exception ex)
                         {
-                            Trace.WriteLine(ex.Message);
+                            Log.WriteLine(ex.Message);
                         }
                         finally
                         {
@@ -262,6 +275,8 @@ namespace Resharper.AutoFormatOnSave
 
                     if (saveDocumentsAfterwards)
                     {
+                        Log.WriteLine("Save Documents afterwards.");
+
                         foreach (var document in recentlySavedDocuments.Where(d => !d.Saved))
                         {
                             document.Save();
@@ -290,6 +305,8 @@ namespace Resharper.AutoFormatOnSave
         /// <param name="action">The build action</param>
         private void OnBuildBegin(vsBuildScope scope, vsBuildAction action)
         {
+            Log.WriteLine($"{nameof(OnBuildBegin)}(Scope: {scope}, Action: {action})");
+
             switch (action)
             {
                 case vsBuildAction.vsBuildActionBuild:
@@ -309,6 +326,8 @@ namespace Resharper.AutoFormatOnSave
         /// <param name="action">The build action</param>
         private void OnBuildDone(vsBuildScope scope, vsBuildAction action)
         {
+            Log.WriteLine($"{nameof(OnBuildDone)}(Scope: {scope}, Action: {action})");
+
             switch (action)
             {
                 case vsBuildAction.vsBuildActionBuild:
@@ -327,6 +346,8 @@ namespace Resharper.AutoFormatOnSave
         /// <param name="document">The document that is saved</param>
         private void OnDocumentSaved(Document document)
         {
+            Log.WriteLine($"{nameof(OnDocumentSaved)}(Document: {document.Name})");
+
             if (IsReformatting || BuildingSolution > 0)
                 return;
 
@@ -343,6 +364,8 @@ namespace Resharper.AutoFormatOnSave
         /// <param name="document">The document that is getting closed</param>
         private void OnDocumentClosing(Document document)
         {
+            Log.WriteLine($"{nameof(OnDocumentClosing)}(Document: {document.Name})");
+            
             string extension = Path.GetExtension(document.FullName);
             if (!AllowedFileExtensions.Contains(extension))
                 return;
@@ -355,6 +378,7 @@ namespace Resharper.AutoFormatOnSave
         /// </summary>
         private void OnOpenedSolution()
         {
+            Log.WriteLine($"{nameof(OnOpenedSolution)}()");
             IsSolutionActive = true;
         }
 
@@ -363,6 +387,7 @@ namespace Resharper.AutoFormatOnSave
         /// </summary>
         private void OnBeforeClosingSolution()
         {
+            Log.WriteLine($"{nameof(OnBeforeClosingSolution)}()");
             IsSolutionActive = false;
         }
 
@@ -371,6 +396,8 @@ namespace Resharper.AutoFormatOnSave
         /// </summary>
         private void DisconnectFromVsEvents()
         {
+            Log.WriteLine($"{nameof(DisconnectFromVsEvents)}()");
+
             if (DocumentEvents != null)
             {
                 DocumentEvents.DocumentSaved -= OnDocumentSaved;
@@ -396,12 +423,22 @@ namespace Resharper.AutoFormatOnSave
 
         private bool IsVisualStudioForegroundWindow()
         {
+            Log.WriteLine($"{nameof(IsVisualStudioForegroundWindow)}()");
             NativeWindowMethods.GetWindowThreadProcessId(NativeWindowMethods.GetForegroundWindow(), out uint foregroundProcessId);
             int visualStudioProcessId = Process.GetCurrentProcess().Id;
 
+            Log.WriteLine($"Is VisualStudio foreground window: {visualStudioProcessId == foregroundProcessId}");
             return visualStudioProcessId == foregroundProcessId;
         }
 
+        private async Task InitializeLogging()
+        {
+            IVsOutputWindow output = (IVsOutputWindow) await GetServiceAsync(typeof(IVsOutputWindow));
+            output.CreatePane(Guids.OUTPUT_PANE_GUID, "ReSharper.AutoFormatOnSave", 1, 1);
+            output.GetPane(Guids.OUTPUT_PANE_GUID, out IVsOutputWindowPane outputPane);
+
+            _log.InitializeLog(outputPane);
+        }
 
 #region Package Members
 
@@ -414,19 +451,26 @@ namespace Resharper.AutoFormatOnSave
         /// <returns>A task representing the async work of package initialization, or an already completed task if there is none. Do not return null from this method.</returns>
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            Trace.WriteLine($"Entering Initialize() of: {this}");
-
             // When initialized asynchronously, the current thread may be a background thread at this point.
             await base.InitializeAsync(cancellationToken, progress);
 
-            Dte = (DTE) GetGlobalService(typeof(DTE));
+            // Do any initialization that requires the UI thread after switching to the UI thread.
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await InitializeLogging();
+
+            Dte = (DTE) await GetServiceAsync(typeof(DTE));
             IEnumerable<Command> availableCleanupCommands = Dte.Commands.OfType<Command>().Where(c => _resharperSilentCleanupCodeCommandsNames.Contains(c.Name));
             Command = availableCleanupCommands.FirstOrDefault();
             if (Command == null)
+            {
+                Log.WriteLine("No Command found.");
                 return;
+            }
 
             DisconnectFromVsEvents();
 
+            Log.WriteLine("Subscribe to VS events.");
             DocumentEvents = Dte.Events.DocumentEvents;
             DocumentEvents.DocumentSaved += OnDocumentSaved;
             DocumentEvents.DocumentClosing += OnDocumentClosing;
@@ -441,8 +485,7 @@ namespace Resharper.AutoFormatOnSave
 
             _timer.Start();
 
-            // Do any initialization that requires the UI thread after switching to the UI thread.
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            Log.WriteLine("Initialized successful.");
         }
 
         protected override void Dispose(bool disposing)
@@ -450,6 +493,8 @@ namespace Resharper.AutoFormatOnSave
             if (disposing)
             {
                 DisconnectFromVsEvents();
+
+                _log.Dispose();
 
                 _timer.Elapsed -= TimerOnElapsed;
                 _timer.Dispose();
