@@ -4,10 +4,11 @@
 
 using System.ComponentModel;
 using Microsoft.VisualStudio.Shell;
+using Resharper.AutoFormatOnSave.Interfaces;
 
-namespace Resharper.AutoFormatOnSave
+namespace Resharper.AutoFormatOnSave.OptionPages
 {
-    public class OptionPage : DialogPage
+    public class AllowedFileExtensionsOptionPage : DialogPage, IAllowedFileExtensionsOptions
     {
         /// <summary>
         /// Is .cs file extension allowed
