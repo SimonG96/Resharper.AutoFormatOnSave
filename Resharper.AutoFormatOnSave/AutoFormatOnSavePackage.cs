@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Author: Gockner, Simon
+// Created: 2019-09-18
+// Copyright(c) 2019 SimonG. All Rights Reserved.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -167,8 +171,6 @@ namespace Resharper.AutoFormatOnSave
         /// <param name="args">The <see cref="ElapsedEventArgs"/></param>
         private async void TimerOnElapsed(object sender, ElapsedEventArgs args)
         {
-            Log.WriteLine($"{nameof(TimerOnElapsed)}()");
-
             try
             {
                 if (BuildingSolution > 0)
@@ -178,12 +180,27 @@ namespace Resharper.AutoFormatOnSave
                     return;
                 }
 
+                if (_documentsToReformat.Any())
+                    Log.WriteLine($"{_documentsToReformat.Count} documents to reformat.");
+
+                bool isVisualStudioForegroundWindow = IsVisualStudioForegroundWindow();
+
                 if (Dte.Application.Mode == vsIDEMode.vsIDEModeDebug ||
                     IsReformatting ||
                     !IsSolutionActive ||
                     !_documentsToReformat.Any() ||
-                    !IsVisualStudioForegroundWindow())
+                    !isVisualStudioForegroundWindow)
+                {
+                    if (_documentsToReformat.Any())
+                    {
+                        Log.WriteLine($"Dte.Application.Mode: {Dte.Application.Mode},");
+                        Log.WriteLine($"IsReformatting: {IsReformatting},");
+                        Log.WriteLine($"IsSolutionActive: {IsSolutionActive},");
+                        Log.WriteLine($"IsVisualStudioForegroundWindow: {isVisualStudioForegroundWindow}.");
+                    }
+
                     return;
+                }
 
                 Log.WriteLine("Going on to reformat.");
 
@@ -392,11 +409,31 @@ namespace Resharper.AutoFormatOnSave
         }
 
         /// <summary>
-        /// Disconnect from Visual Studio events
+        /// Subscribe to Visual Studio Events
         /// </summary>
-        private void DisconnectFromVsEvents()
+        private void SubscribeToVsEvents()
         {
-            Log.WriteLine($"{nameof(DisconnectFromVsEvents)}()");
+            Log.WriteLine($"{nameof(SubscribeToVsEvents)}()");
+
+            DocumentEvents = Dte.Events.DocumentEvents;
+            DocumentEvents.DocumentSaved += OnDocumentSaved;
+            DocumentEvents.DocumentClosing += OnDocumentClosing;
+
+            BuildEvents = Dte.Events.BuildEvents;
+            BuildEvents.OnBuildBegin += OnBuildBegin;
+            BuildEvents.OnBuildDone += OnBuildDone;
+
+            SolutionEvents = Dte.Events.SolutionEvents;
+            SolutionEvents.Opened += OnOpenedSolution;
+            SolutionEvents.BeforeClosing += OnBeforeClosingSolution;
+        }
+
+        /// <summary>
+        /// Unsubscribe from Visual Studio events
+        /// </summary>
+        private void UnsubscribeFomVsEvents()
+        {
+            Log.WriteLine($"{nameof(UnsubscribeFomVsEvents)}()");
 
             if (DocumentEvents != null)
             {
@@ -420,17 +457,22 @@ namespace Resharper.AutoFormatOnSave
             }
         }
 
-
+        /// <summary>
+        /// Check if Visual Studio is the foreground window
+        /// </summary>
+        /// <returns></returns>
         private bool IsVisualStudioForegroundWindow()
         {
-            Log.WriteLine($"{nameof(IsVisualStudioForegroundWindow)}()");
             NativeWindowMethods.GetWindowThreadProcessId(NativeWindowMethods.GetForegroundWindow(), out uint foregroundProcessId);
             int visualStudioProcessId = Process.GetCurrentProcess().Id;
 
-            Log.WriteLine($"Is VisualStudio foreground window: {visualStudioProcessId == foregroundProcessId}");
             return visualStudioProcessId == foregroundProcessId;
         }
 
+        /// <summary>
+        /// Initialize logging to the Visual Studio output console
+        /// </summary>
+        /// <returns></returns>
         private async Task InitializeLogging()
         {
             IVsOutputWindow output = (IVsOutputWindow) await GetServiceAsync(typeof(IVsOutputWindow));
@@ -454,10 +496,9 @@ namespace Resharper.AutoFormatOnSave
             // When initialized asynchronously, the current thread may be a background thread at this point.
             await base.InitializeAsync(cancellationToken, progress);
 
-            // Do any initialization that requires the UI thread after switching to the UI thread.
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             await InitializeLogging();
+
+            Log.WriteLine("Initializing.");
 
             Dte = (DTE) await GetServiceAsync(typeof(DTE));
             IEnumerable<Command> availableCleanupCommands = Dte.Commands.OfType<Command>().Where(c => _resharperSilentCleanupCodeCommandsNames.Contains(c.Name));
@@ -468,22 +509,16 @@ namespace Resharper.AutoFormatOnSave
                 return;
             }
 
-            DisconnectFromVsEvents();
-
-            Log.WriteLine("Subscribe to VS events.");
-            DocumentEvents = Dte.Events.DocumentEvents;
-            DocumentEvents.DocumentSaved += OnDocumentSaved;
-            DocumentEvents.DocumentClosing += OnDocumentClosing;
-
-            BuildEvents = Dte.Events.BuildEvents;
-            BuildEvents.OnBuildBegin += OnBuildBegin;
-            BuildEvents.OnBuildDone += OnBuildDone;
-
-            SolutionEvents = Dte.Events.SolutionEvents;
-            SolutionEvents.Opened += OnOpenedSolution;
-            SolutionEvents.BeforeClosing += OnBeforeClosingSolution;
+            UnsubscribeFomVsEvents();
+            SubscribeToVsEvents();
 
             _timer.Start();
+
+            // Do any initialization that requires the UI thread after switching to the UI thread.
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            //Set IsSolutionActive to true because due to asynchronous loading of the extension the SolutionEvents.Opened Event is called before we are subscribed to it
+            IsSolutionActive = true;
 
             Log.WriteLine("Initialized successful.");
         }
@@ -492,7 +527,7 @@ namespace Resharper.AutoFormatOnSave
         {
             if (disposing)
             {
-                DisconnectFromVsEvents();
+                UnsubscribeFomVsEvents();
 
                 _log.Dispose();
 
