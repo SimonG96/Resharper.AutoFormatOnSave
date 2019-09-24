@@ -11,7 +11,7 @@ namespace Resharper.CleanupOnSave
         /// <summary>
         /// CleanupOnSavePackage GUID string
         /// </summary>
-        public const string PACKAGE_GUID_STRING = "9a82f1dc-d8e7-4ab9-82e9-0d2691de3bbd";
+        public const string PACKAGE_GUID_STRING = "9E5682AD-6F16-42FC-9110-E797BAA66433";
 
         /// <summary>
         /// Output pane GUID
