@@ -72,6 +72,6 @@ namespace Resharper.CleanupOnSave.OptionPages
         [Category("Allowed File Extensions")]
         [DisplayName(".xml")]
         [Description("Is .xml allowed?")]
-        public bool IsXmlAllowed { get; set; } = true;
+        public bool IsXmlAllowed { get; set; } = false;
     }
 }
