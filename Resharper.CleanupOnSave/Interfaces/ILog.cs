@@ -5,7 +5,7 @@
 using System;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Resharper.AutoFormatOnSave.Interfaces
+namespace Resharper.CleanupOnSave.Interfaces
 {
     public interface ILog : IDisposable
     {

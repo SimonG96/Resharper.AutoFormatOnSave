@@ -4,14 +4,14 @@
 
 using System.ComponentModel;
 using Microsoft.VisualStudio.Shell;
-using Resharper.AutoFormatOnSave.Interfaces;
+using Resharper.CleanupOnSave.Interfaces;
 
-namespace Resharper.AutoFormatOnSave.OptionPages
+namespace Resharper.CleanupOnSave.OptionPages
 {
     public class LoggingOptionPage : DialogPage, ILoggingOptions
     {
         /// <summary>
-        /// The <see cref="AutoFormatOnSave.LogLevel"/> of the extension
+        /// The <see cref="CleanupOnSave.LogLevel"/> of the extension
         /// </summary>
         [Category("Logging")]
         [DisplayName("LogLevel")]

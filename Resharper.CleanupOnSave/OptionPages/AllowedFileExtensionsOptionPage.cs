@@ -4,9 +4,9 @@
 
 using System.ComponentModel;
 using Microsoft.VisualStudio.Shell;
-using Resharper.AutoFormatOnSave.Interfaces;
+using Resharper.CleanupOnSave.Interfaces;
 
-namespace Resharper.AutoFormatOnSave.OptionPages
+namespace Resharper.CleanupOnSave.OptionPages
 {
     public class AllowedFileExtensionsOptionPage : DialogPage, IAllowedFileExtensionsOptions
     {

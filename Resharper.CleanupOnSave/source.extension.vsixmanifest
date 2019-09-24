@@ -2,9 +2,9 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
         <Identity Id="9a82f1dc-d8e7-4ab9-82e9-0d2691de3bbd" Version="1.0.0" Language="en-US" Publisher="SimonG" />
-        <DisplayName>Resharper.AutoFormatOnSave</DisplayName>
+        <DisplayName>Resharper.CleanupOnSave</DisplayName>
         <Description xml:space="preserve">Execute Resharper SilentCleanupCode Command on file save.</Description>
-        <MoreInfo>https://github.com/SimonG96/Resharper.AutoFormatOnSave</MoreInfo>
+        <MoreInfo>https://github.com/SimonG96/Resharper.CleanupOnSave</MoreInfo>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,)" />

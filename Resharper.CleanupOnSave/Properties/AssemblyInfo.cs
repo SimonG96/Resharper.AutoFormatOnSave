@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Resharper.AutoFormatOnSave")]
+[assembly: AssemblyTitle("Resharper.CleanupOnSave")]
 [assembly: AssemblyDescription("Execute Resharper SilentCleanupCode Command on file save.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SimonG")]
-[assembly: AssemblyProduct("Resharper.AutoFormatOnSave")]
+[assembly: AssemblyProduct("Resharper.CleanupOnSave")]
 [assembly: AssemblyCopyright("Copyright(c) 2019 SimonG. All Rights Reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

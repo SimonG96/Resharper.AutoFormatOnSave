@@ -3,9 +3,9 @@
 // Copyright(c) 2019 SimonG. All Rights Reserved.
 
 using Microsoft.VisualStudio.Shell.Interop;
-using Resharper.AutoFormatOnSave.Interfaces;
+using Resharper.CleanupOnSave.Interfaces;
 
-namespace Resharper.AutoFormatOnSave
+namespace Resharper.CleanupOnSave
 {
     public class Log : ILog
     {
@@ -26,7 +26,7 @@ namespace Resharper.AutoFormatOnSave
         }
 
         /// <summary>
-        /// Write a given <see cref="string"/> with the <see cref="AutoFormatOnSave.LogLevel.Default"/> to the <see cref="IVsOutputWindowPane"/>
+        /// Write a given <see cref="string"/> with the <see cref="CleanupOnSave.LogLevel.Default"/> to the <see cref="IVsOutputWindowPane"/>
         /// </summary>
         /// <param name="line">The given string</param>
         public static void WriteLine(string line)
@@ -37,7 +37,7 @@ namespace Resharper.AutoFormatOnSave
         /// <summary>
         /// Write a given <see cref="string"/> to the <see cref="IVsOutputWindowPane"/>
         /// </summary>
-        /// <param name="logLevel">The <see cref="AutoFormatOnSave.LogLevel"/></param>
+        /// <param name="logLevel">The <see cref="CleanupOnSave.LogLevel"/></param>
         /// <param name="line">The given string</param>
         public static void WriteLine(LogLevel logLevel, string line)
         {

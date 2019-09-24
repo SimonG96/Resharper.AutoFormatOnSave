@@ -23,8 +23,8 @@
     <ProjectGuid>{D67CE53B-3343-4E76-9231-819AE1DA5D68}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Resharper.AutoFormatOnSave</RootNamespace>
-    <AssemblyName>Resharper.AutoFormatOnSave</AssemblyName>
+    <RootNamespace>Resharper.CleanupOnSave</RootNamespace>
+    <AssemblyName>Resharper.CleanupOnSave</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
@@ -69,7 +69,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="AutoFormatOnSavePackage.cs" />
+    <Compile Include="CleanupOnSavePackage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Key.snk" />
@@ -165,7 +165,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\Resharper.AutoFormatOnSavePackage.ico" />
+    <Content Include="Resources\Resharper.CleanupOnSavePackage.ico" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VSPackage.resx">

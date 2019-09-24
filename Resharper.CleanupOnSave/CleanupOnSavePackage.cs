@@ -12,13 +12,13 @@ using System.Timers;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Resharper.AutoFormatOnSave.Interfaces;
-using Resharper.AutoFormatOnSave.OptionPages;
+using Resharper.CleanupOnSave.Interfaces;
+using Resharper.CleanupOnSave.OptionPages;
 using Process = System.Diagnostics.Process;
 using Task = System.Threading.Tasks.Task;
 using Timer = System.Timers.Timer;
 
-namespace Resharper.AutoFormatOnSave
+namespace Resharper.CleanupOnSave
 {
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
@@ -43,9 +43,9 @@ namespace Resharper.AutoFormatOnSave
     [ProvideAutoLoad(UIContextGuids.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideOptionPage(typeof(AllowedFileExtensionsOptionPage), EXTENSION_NAME, "Allowed File Extensions", 0, 0 , true)]
     [ProvideOptionPage(typeof(LoggingOptionPage), EXTENSION_NAME, "Logging", 0, 0, true)]
-    public sealed class AutoFormatOnSavePackage : AsyncPackage
+    public sealed class CleanupOnSavePackage : AsyncPackage
     {
-        private const string EXTENSION_NAME = "ReSharper.AutoFormatOnSave";
+        private const string EXTENSION_NAME = "ReSharper.CleanupOnSave";
         private const uint TIMER_INTERVAL = 1000;
 
         /// <summary>
@@ -69,9 +69,9 @@ namespace Resharper.AutoFormatOnSave
         private readonly ILog _log;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AutoFormatOnSavePackage"/> class.
+        /// Initializes a new instance of the <see cref="CleanupOnSavePackage"/> class.
         /// </summary>
-        public AutoFormatOnSavePackage()
+        public CleanupOnSavePackage()
         {
             // Inside this method you can place any initialization code that does not require
             // any Visual Studio service because at this point the package object is created but

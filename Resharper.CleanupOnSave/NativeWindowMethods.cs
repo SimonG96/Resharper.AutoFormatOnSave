@@ -5,7 +5,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Resharper.AutoFormatOnSave
+namespace Resharper.CleanupOnSave
 {
     internal static class NativeWindowMethods
     {
