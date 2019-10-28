@@ -388,6 +388,9 @@ namespace Resharper.CleanupOnSave
         /// <param name="document">The document that is getting closed</param>
         private void OnDocumentClosing(Document document)
         {
+            if (document == null)
+                return;
+
             Log.WriteLine(LogLevel.Debug, $"{nameof(OnDocumentClosing)}(Document: {document.Name})");
             
             string extension = Path.GetExtension(document.FullName);
