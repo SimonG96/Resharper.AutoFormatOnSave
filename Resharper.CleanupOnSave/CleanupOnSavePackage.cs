@@ -239,7 +239,6 @@ namespace Resharper.CleanupOnSave
             {
                 //TODO: Handle exception case
                 Log.WriteLine(ex.Message);
-                throw;
             }
         }
 
